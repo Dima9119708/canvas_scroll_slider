@@ -1,4 +1,4 @@
-const DATA = [
+const data = [
     { date: '12-09-2022', result: 7000 },
     { date: '14-09-2022', result: 6800 },
     { date: '15-09-2022', result: 6000 },
@@ -8,28 +8,107 @@ const DATA = [
     { date: '15-09-2022', result: 6800 },
     { date: '15-09-2022', result: 6500 },
     { date: '15-09-2022', result: 70000 },
-    { date: '16-09-2022', result: 40000 }
+    { date: '15-09-2022', result: 70000 },
+    { date: '15-09-2022', result: 70000 },
+    { date: '15-09-2022', result: 70000 },
+    { date: '15-09-2022', result: 70000 },
+    { date: '15-09-2022', result: 70000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 40000 },
+    { date: '16-09-2022', result: 70000 },
 ]
 
-const DPI = 1.5
-const HEIGHT = 300
-const WIDTH = 600
-const DPI_HEIGHT = HEIGHT * DPI
-const DPI_WIDTH = WIDTH * DPI
-const MAX_X_VALUE = 3000
-const FULL_WIDTH = DPI_WIDTH + MAX_X_VALUE
+const MAX_X_VALUE = 3000 + 56
 
-const $canvas = document.querySelector('canvas')
+const init = (args) => {
+    const {
+        dpi = 1,
+        data = [],
+        width = 0,
+        height = 0,
+        padding = { left: 0, right: 0, top: 0, bottom: 0 },
+        domElement = null,
+        viewElements = 0,
+        keyX,
+        keyY,
+    } = args
 
-$canvas.style.height = HEIGHT + 'px'
-$canvas.style.width = WIDTH + 'px'
-$canvas.style.border = '1px solid black'
-$canvas.style.cursor = 'grabbing'
+    const PADDING = {
+        top: padding.top * dpi,
+        bottom: padding.bottom * dpi,
+        left: padding.left * dpi,
+        right: padding.right * dpi,
+    }
+    const DPI_HEIGHT = height * dpi
+    const DPI_WIDTH = width * dpi
+    const DISTANCE = DPI_WIDTH / viewElements
+    const FULL_WIDTH = DISTANCE * (data.length - 1) + PADDING.right + PADDING.left
+    console.log(DISTANCE / dpi)
+    const collectionValueByKey = (data, key) => data.map(element => element[key])
+    const maxYValue = Math.max(...collectionValueByKey(data, keyY))
+    const yRatio = DPI_HEIGHT / maxYValue
+    const prepareData = data.map((element, idx) => ({
+        x: (DISTANCE * idx) + PADDING.left,
+        y: element[keyY],
+        dataX: element[keyX]
+    }))
 
-$canvas.height = DPI_HEIGHT
-$canvas.width = DPI_WIDTH
+    domElement.style.height = height + 'px'
+    domElement.style.width = width + 'px'
+    domElement.style.border = '1px solid black'
+    domElement.style.cursor = 'grabbing'
 
-const ctx = $canvas.getContext('2d')
+    domElement.height = DPI_HEIGHT
+    domElement.width = DPI_WIDTH
+
+    const ctx = domElement.getContext('2d')
+
+    return {
+        ctx,
+        DPI: dpi,
+        HEIGHT: height,
+        WIDTH: width,
+        PADDING,
+        $canvas: domElement,
+        DPI_HEIGHT,
+        DPI_WIDTH,
+        VIEW_ELEMENTS: viewElements,
+        DISTANCE,
+        FULL_WIDTH,
+        DATA: prepareData,
+        yRatio,
+    }
+}
+
+const {
+    ctx,
+    DPI,
+    HEIGHT,
+    WIDTH,
+    DATA,
+    PADDING,
+    $canvas,
+    yRatio,
+    DPI_HEIGHT,
+    DPI_WIDTH,
+    FULL_WIDTH
+} = init({
+    dpi: 1 ,
+    data,
+    width: 1716,
+    height: 265,
+    padding: { left: 56, right: 56, top: 5, bottom: 5 },
+    domElement: document.querySelector('canvas'),
+    viewElements: 13,
+    keyX: 'date',
+    keyY: 'result'
+})
 
 $canvas.addEventListener('mousedown', mouseDown)
 
@@ -52,8 +131,8 @@ function mouseDown(canvasEvent) {
             CAMERA.x = prevX + deltaX
         }
 
-        if (CAMERA.x + DPI_WIDTH > MAX_X_VALUE) {
-            CAMERA.x = MAX_X_VALUE - DPI_WIDTH
+        if (CAMERA.x + DPI_WIDTH > FULL_WIDTH) {
+            CAMERA.x = FULL_WIDTH - DPI_WIDTH
         }
 
         if (CAMERA.x + DPI_WIDTH < DPI_WIDTH) {
@@ -67,38 +146,36 @@ function mouseDown(canvasEvent) {
     }
 }
 
+const calcY = (value) => {
+    const result = (DPI_HEIGHT - value * yRatio)
+    const percent = (result / DPI_HEIGHT) * 100
+
+    if (percent > 90) return result - PADDING.bottom
+    if (percent < 10) return result + PADDING.top
+
+    return result
+}
+
 function render() {
     ctx.clearRect(0, 0, FULL_WIDTH, DPI_HEIGHT)
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.translate(-CAMERA.x, 0);
 
+    const [first] = DATA
+
     ctx.beginPath()
-    ctx.moveTo( 5, DPI_HEIGHT - 6)
-    ctx.lineTo(100, DPI_HEIGHT - 200)
-    ctx.lineTo(150, DPI_HEIGHT - 150)
-    ctx.lineTo(200, DPI_HEIGHT - 150)
-    ctx.lineTo(300, DPI_HEIGHT - 160)
-    ctx.lineTo(400, DPI_HEIGHT - 170)
-    ctx.lineTo(500, DPI_HEIGHT - 110)
-    ctx.lineTo(600, DPI_HEIGHT - 190)
-    ctx.lineTo(700, DPI_HEIGHT - 170)
-    ctx.lineTo(800, DPI_HEIGHT - 170)
-    ctx.lineTo(900, DPI_HEIGHT - 280)
-    ctx.lineTo(1000, DPI_HEIGHT - 300)
-    ctx.lineTo(1200, DPI_HEIGHT - 200)
-    ctx.lineTo(1400, DPI_HEIGHT - 100)
-    ctx.lineTo(1500, DPI_HEIGHT - 200)
-    ctx.lineTo(1600, DPI_HEIGHT - 100)
-    ctx.lineTo(1700, DPI_HEIGHT - 300)
-    ctx.lineTo(1800, DPI_HEIGHT - 175)
-    ctx.lineTo(1900, DPI_HEIGHT - 175)
-    ctx.lineTo(2500, DPI_HEIGHT - 175)
-    ctx.lineTo(2600, DPI_HEIGHT - 180)
-    ctx.lineTo(2700, DPI_HEIGHT - 162)
-    ctx.lineTo(2800, DPI_HEIGHT - 174)
-    ctx.lineTo(2900, DPI_HEIGHT - 130)
-    ctx.lineTo(3000, DPI_HEIGHT - 190)
+    ctx.moveTo(first.x, calcY(first.y))
+
+    for (let idx = 1; idx < DATA.length; idx++) {
+      ctx.lineTo(DATA[idx].x, calcY(DATA[idx].y))
+        ctx.fillStyle = "green";
+        ctx.fillRect(DATA[idx].x, calcY(DATA[idx].y), 10, 10);
+    }
+
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = '#5CBA7C';
     ctx.stroke()
 
     requestAnimationFrame(render)
