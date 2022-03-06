@@ -34,7 +34,7 @@ const init = (args) => {
         height = 0,
         padding = { left: 0, right: 0, top: 0, bottom: 0 },
         domElement = null,
-        distance = 150,
+        viewElement,
         keyX,
         keyY,
     } = args
@@ -49,7 +49,7 @@ const init = (args) => {
     }
     const DPI_HEIGHT = height * dpi
     const DPI_WIDTH = WIDTH * dpi
-    const DISTANCE = distance
+    const DISTANCE = DPI_WIDTH / viewElement
     const FULL_WIDTH = DISTANCE * (data.length - 1) + PADDING.right + PADDING.left
 
     const collectionValueByKey = (data, key) => data.map(element => element[key])
@@ -88,7 +88,6 @@ const init = (args) => {
         $axisX,
         DPI_HEIGHT,
         DPI_WIDTH,
-        distance,
         DISTANCE,
         FULL_WIDTH,
         DATA: prepareData,
@@ -115,7 +114,7 @@ const {
     height: 265,
     padding: { left: 56, right: 56, top: 5, bottom: 5 },
     domElement: document.querySelector('#chart'),
-    distance: 135,
+    viewElement: 13,
     keyX: 'date',
     keyY: 'result'
 })
