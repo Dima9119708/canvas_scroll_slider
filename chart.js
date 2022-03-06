@@ -34,7 +34,7 @@ const init = (args) => {
         height = 0,
         padding = { left: 0, right: 0, top: 0, bottom: 0 },
         domElement = null,
-        viewElements = 0,
+        distance = 150,
         keyX,
         keyY,
     } = args
@@ -49,7 +49,7 @@ const init = (args) => {
     }
     const DPI_HEIGHT = height * dpi
     const DPI_WIDTH = WIDTH * dpi
-    const DISTANCE = DPI_WIDTH / viewElements
+    const DISTANCE = distance
     const FULL_WIDTH = DISTANCE * (data.length - 1) + PADDING.right + PADDING.left
 
     const collectionValueByKey = (data, key) => data.map(element => element[key])
@@ -58,7 +58,8 @@ const init = (args) => {
     const prepareData = data.map((element, idx) => ({
         x: (DISTANCE * idx) + PADDING.left,
         y: element[keyY],
-        dataX: element[keyX]
+        dataX: element[keyX],
+        width: DISTANCE / dpi
     }))
 
     const $canvas = domElement.querySelector('canvas')
@@ -87,7 +88,7 @@ const init = (args) => {
         $axisX,
         DPI_HEIGHT,
         DPI_WIDTH,
-        VIEW_ELEMENTS: viewElements,
+        distance,
         DISTANCE,
         FULL_WIDTH,
         DATA: prepareData,
@@ -109,18 +110,24 @@ const {
     DPI_WIDTH,
     FULL_WIDTH
 } = init({
-    dpi: 1 ,
+    dpi: 1,
     data,
     height: 265,
     padding: { left: 56, right: 56, top: 5, bottom: 5 },
     domElement: document.querySelector('#chart'),
-    viewElements: 13,
+    distance: 135,
     keyX: 'date',
     keyY: 'result'
 })
 
 $canvas.addEventListener('mousedown', translateX)
 $axisX.addEventListener('mousedown', translateX)
+
+DATA.forEach(element => {
+    $axisX.innerHTML += `
+       <div style="flex: 0 0 ${element.width}px">${element.dataX}</div>
+    `
+})
 
 const CAMERA = {
   x: 0,
@@ -137,11 +144,7 @@ function translateX(elementEvent) {
     function mouseMove(documentEvent) {
         const deltaX = elementEvent.clientX - documentEvent.clientX
 
-        if (deltaX > 0) {
-            CAMERA.x = prevX + deltaX
-        } else {
-            CAMERA.x = prevX + deltaX
-        }
+        CAMERA.x = prevX + deltaX * DPI
 
         if (CAMERA.x + DPI_WIDTH > FULL_WIDTH) {
             CAMERA.x = FULL_WIDTH - DPI_WIDTH
@@ -177,7 +180,7 @@ function render() {
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.translate(-CAMERA.x, 0);
-    $axisX.style.transform = `translateX(-${CAMERA.x}px)`
+    $axisX.style.transform = `translateX(-${CAMERA.x / DPI}px)`
 
     const [first] = DATA
 
@@ -190,7 +193,7 @@ function render() {
         ctx.fillRect(DATA[idx].x, calcY(DATA[idx].y), 10, 10);
     }
 
-    ctx.lineWidth = 4;
+    ctx.lineWidth = DPI * 4;
     ctx.lineJoin = 'round'
     ctx.strokeStyle = '#5CBA7C';
     ctx.stroke()
