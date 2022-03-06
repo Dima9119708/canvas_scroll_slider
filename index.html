@@ -7,37 +7,80 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <style>
+        #chart {
+            position: relative;
+            display: flex;
+        }
+        .parent {
+            width: 100%;
+        }
         .wrapper {
             display: flex;
             flex-direction: column;
             width: max-content;
+            overflow: hidden;
         }
-        .canvas_x {
+        .axis_y {
+            flex: 0 0 50px;
+        }
+        .axis_x {
+            flex: 1;
             display: flex;
             padding: 0 0 0 56px;
+        }
+        .arrow_left {
+            position: absolute;
+            left: 20px;
+            bottom: -8px;
+            font-size: 30px;
+            color: #283960;
+        }
+        .arrow_right {
+            display: flex;
+            font-size: 30px;
+            align-items: end;
+            justify-content: center;
+            flex: 0 0 50px;
         }
     </style>
 </head>
 <body>
 
-    <div id="chart">
-        <div class="wrapper">
-            <canvas></canvas>
-            <div class="canvas_x">
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
-                <div style="flex: 0 0 132px">10/01/2021</div>
+    <div class="parent">
+        <div id="chart">
+            <div class="axis_y">
+                <div>60.00</div>
             </div>
+            <div class="wrapper">
+                <canvas></canvas>
+                <div class="axis_x">
+                    <div style="flex: 0 0 132px; position: sticky; top: 0">10/01/2011</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                    <div style="flex: 0 0 132px">10/01/2021</div>
+                </div>
+            </div>
+            <div class="arrow_left"><</div>
+            <div class="arrow_right">></div>
         </div>
     </div>
 
