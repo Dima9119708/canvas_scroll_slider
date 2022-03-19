@@ -1,0 +1,35 @@
+#chart {
+    position: relative;
+    display: flex;
+}
+.parent {
+    width: 100%;
+}
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    overflow: hidden;
+}
+.axis_y {
+    flex: 0 0 50px;
+}
+.axis_x {
+    flex: 1;
+    display: flex;
+    padding: 0 0 0 56px;
+}
+.arrow_left {
+    position: absolute;
+    left: 20px;
+    bottom: -8px;
+    font-size: 30px;
+    color: #283960;
+}
+.arrow_right {
+    display: flex;
+    font-size: 30px;
+    align-items: end;
+    justify-content: center;
+    flex: 0 0 50px;
+}
