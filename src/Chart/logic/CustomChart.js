@@ -2,29 +2,30 @@ import collectionValueByKey from "./utils/collectionValueByKey";
 import css from "./utils/css";
 
 class Camera {
-  constructor(DPI_WIDTH, FULL_WIDTH) {
-    this.x = 0;
-    this.DPI_WIDTH = DPI_WIDTH;
+  constructor(RETINA_WIDTH, FULL_WIDTH) {
+    this.x = 0
+    this.RETINA_WIDTH = RETINA_WIDTH;
     this.FULL_WIDTH = FULL_WIDTH;
   }
 
-  translateX = (elementEvent) => {
+  get getX() {
+    return this.x
+  }
+
+  init = (elementEvent) => {
     const prevX = this.x;
 
     const mouseMove = (documentEvent) => {
       const deltaX = elementEvent.clientX - documentEvent.clientX;
 
-      if (deltaX > 0) {
-        this.x = prevX + deltaX;
-      } else {
-        this.x = prevX + deltaX;
+      if (deltaX > 0) this.x = prevX + deltaX;
+      else this.x = prevX + deltaX;
+
+      if (this.x + this.RETINA_WIDTH > this.FULL_WIDTH) {
+        this.x = this.FULL_WIDTH - this.RETINA_WIDTH;
       }
 
-      if (this.x + this.DPI_WIDTH > this.FULL_WIDTH) {
-        this.x = this.FULL_WIDTH - this.DPI_WIDTH;
-      }
-
-      if (this.x + this.DPI_WIDTH < this.DPI_WIDTH) {
+      if (this.x + this.RETINA_WIDTH < this.RETINA_WIDTH) {
         this.x = 0;
       }
     };
@@ -40,196 +41,101 @@ class Camera {
 }
 
 class Chart {
-  AXIS_Y_WIDTH = 50;
-  ARROW_RIGHT = 50;
   rfa = null;
 
   constructor(options) {
     this.options = options;
-
-    const {
-      ctx,
-      DPI,
-      HEIGHT,
-      WIDTH,
-      PADDING,
-      $canvas,
-      $axisX,
-      DPI_HEIGHT,
-      DPI_WIDTH,
-      VIEW_ELEMENTS,
-      DISTANCE,
-      FULL_WIDTH,
-      DATA,
-      yRatio,
-    } = this.init(options);
-
-    this.ctx = ctx;
-    this.DPI = DPI;
-    this.HEIGHT = HEIGHT;
-    this.WIDTH = WIDTH;
-    this.PADDING = PADDING;
-    this.$canvas = $canvas;
-    this.$axisX = $axisX;
-    this.DPI_HEIGHT = DPI_HEIGHT;
-    this.DPI_WIDTH = DPI_WIDTH;
-    this.VIEW_ELEMENTS = VIEW_ELEMENTS;
-    this.DISTANCE = DISTANCE;
-    this.FULL_WIDTH = FULL_WIDTH;
-    this.DATA = DATA;
-    this.yRatio = yRatio;
-    options.getDistance(DISTANCE);
-
-    this.CAMERA = new Camera(DPI_WIDTH, FULL_WIDTH);
-
-    this.initEventListener();
-
-    this.rfa = requestAnimationFrame(this.render);
   }
 
-  init(options) {
-    const {
-      dpi = 1,
-      data = [],
-      height = 0,
-      padding = { left: 0, right: 0, top: 0, bottom: 0 },
-      domElement = null,
-      viewElements = 0,
-      keyX,
-      keyY,
-    } = options;
-
-    const WIDTH =
-      parseInt(window.getComputedStyle(domElement.parentElement).width) -
-      this.AXIS_Y_WIDTH -
-      this.ARROW_RIGHT;
-
-    const PADDING = {
-      top: padding.top * dpi,
-      bottom: padding.bottom * dpi,
-      left: padding.left * dpi,
-      right: padding.right * dpi,
-    };
-
-    const DPI_HEIGHT = height * dpi;
-    const DPI_WIDTH = WIDTH * dpi;
-    const DISTANCE = DPI_WIDTH / viewElements;
-    const FULL_WIDTH =
-      DISTANCE * (data.length - 1) +
-      PADDING.right +
-      PADDING.right +
-      PADDING.left;
-
+  calcByChart({ retina, data, height, padding, paddingLeft, domElement, viewElements, keyX, keyY, }) {
+    this.WIDTH = parseInt(window.getComputedStyle(domElement.parentElement).width)
+    this.PADDING = padding * retina;
+    this.PADDING_LEFT = paddingLeft * retina;
+    this.RETINA_HEIGHT = height * retina;
+    this.RETINA_WIDTH = this.WIDTH * retina;
+    this.VIEW_HEIGHT = this.RETINA_HEIGHT - this.PADDING - this.PADDING_LEFT
+    this.DISTANCE = this.RETINA_WIDTH / viewElements;
+    this.FULL_WIDTH = this.DISTANCE * (data.length - 1) + paddingLeft
     const maxYValue = Math.max(...collectionValueByKey(data, keyY));
+    this.yRatio = this.VIEW_HEIGHT / maxYValue;
+  }
 
-    const yRatio = DPI_HEIGHT / maxYValue;
-    const DATA = data.map((element, idx) => ({
-      x: DISTANCE * idx + PADDING.left,
-      y: element[keyY],
-      dataX: element[keyX],
-    }));
+  prepareData({ data, keyY, keyX  }) {
+    this.DATA = data.map((element, idx) => {
+      if (idx === 0) {
+        return ({
+          x: this.DISTANCE * idx + this.PADDING_LEFT,
+          y: element[keyY],
+          dataX: element[keyX],
+        })
+      }
 
-    const $canvas = domElement.querySelector("canvas");
-    const $axisX = domElement.querySelector(".axis_x");
-    const $axisY = domElement.querySelector(".axis_y");
-
-    css($axisY, {
-      height: height + "px",
-      paddingTop: padding.top + "px",
-      paddingBottom: padding.bottom + "px",
+      return ({
+        x: this.DISTANCE * idx,
+        y: element[keyY],
+        dataX: element[keyX],
+      })
     });
+  }
+
+  initCanvas({ domElement }) {
+    const $canvas = domElement.querySelector("canvas");
+    $canvas.height = this.RETINA_HEIGHT;
+    $canvas.width = this.RETINA_WIDTH;
 
     css($canvas, {
-      height: height + "px",
-      width: WIDTH + "px",
+      border: '1px solid'
     });
 
-    $canvas.height = DPI_HEIGHT;
-    $canvas.width = DPI_WIDTH;
+    this.$canvas = $canvas
+    this.ctx = $canvas.getContext("2d");
+  }
 
-    const ctx = $canvas.getContext("2d");
+  init() {
+    this.rfa = requestAnimationFrame(this.render);
 
-    return {
-      ctx,
-      DPI: dpi,
-      HEIGHT: height,
-      WIDTH,
-      PADDING,
-      $canvas,
-      $axisX,
-      DPI_HEIGHT,
-      DPI_WIDTH,
-      VIEW_ELEMENTS: viewElements,
-      DISTANCE,
-      FULL_WIDTH,
-      DATA,
-      yRatio,
-    };
+    this.calcByChart(this.options)
+    this.prepareData(this.options)
+    this.initCanvas(this.options)
+
+    this.camera = new Camera(this.RETINA_WIDTH, this.FULL_WIDTH)
+    this.$canvas.addEventListener('mousedown', this.camera.init)
+
+    this.options.getDistance(this.DISTANCE)
+  }
+
+  canvasTranslate() {
+    this.ctx.translate(-this.camera.getX, 0)
   }
 
   clearCanvas() {
-    this.ctx.clearRect(0, 0, this.FULL_WIDTH, this.DPI_HEIGHT);
+    this.ctx.clearRect(0, 0, this.FULL_WIDTH, this.RETINA_HEIGHT);
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  reInit(options = {}) {
-    cancelAnimationFrame(this.rfa);
-    this.clearCanvas();
-    this.removeEventsListener();
+  // reInit(options = {}) {
+  //   cancelAnimationFrame(this.rfa);
+  //   this.clearCanvas();
+  //
+  //   new Chart(Object.assign(this.options, options));
+  // }
 
-    new Chart(Object.assign(this.options, options));
-  }
-
-  resize() {}
-
-  removeEventsListener() {
-    this.$canvas.removeEventListener("mousedown", this.CAMERA.translateX);
-    this.$axisX.removeEventListener("mousedown", this.CAMERA.translateX);
-  }
-
-  initEventListener() {
-    this.$canvas.addEventListener("mousedown", this.CAMERA.translateX);
-    this.$axisX.addEventListener("mousedown", this.CAMERA.translateX);
-  }
-
-  calcYValue(value) {
-    return this.DPI_HEIGHT - value * this.yRatio;
-  }
-
-  calcY(value) {
-    const result = this.calcYValue(value);
-    const percent = (result / this.DPI_HEIGHT) * 100;
-
-    if (percent > 90) return result - this.PADDING.bottom;
-    if (percent < 10) return result + this.PADDING.top;
-
-    return result;
-  }
-
-  render = () => {
-    this.clearCanvas();
-
-    this.ctx.translate(-this.CAMERA.x, 0);
-
-    css(this.$axisX, {
-      transform: `translateX(-${this.CAMERA.x}px)`,
-    });
-
-    const [first] = this.DATA;
-
+  drawLine() {
     this.ctx.beginPath();
-    this.ctx.moveTo(first.x, this.calcY(first.y));
-
-    for (let idx = 1; idx < this.DATA.length; idx++) {
-      this.ctx.lineTo(this.DATA[idx].x, this.calcY(this.DATA[idx].y));
-      this.ctx.fillStyle = "green";
-      this.ctx.fillRect(this.DATA[idx].x, this.calcY(this.DATA[idx].y), 10, 10);
+    for (const { x, y } of this.DATA) {
+      this.ctx.lineTo(x, this.RETINA_HEIGHT - this.PADDING - y * this.yRatio);
     }
-
     this.ctx.lineWidth = 4;
     this.ctx.lineJoin = "round";
     this.ctx.strokeStyle = "#5CBA7C";
     this.ctx.stroke();
+  }
+
+  render = () => {
+    this.clearCanvas()
+
+    this.canvasTranslate()
+    this.drawLine()
 
     this.rfa = requestAnimationFrame(this.render);
   };

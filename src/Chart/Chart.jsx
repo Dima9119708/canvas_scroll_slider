@@ -34,20 +34,19 @@ const Chart = () => {
 
   useEffect(() => {
     const instance = new CustomChart({
-      dpi: 1,
+      retina: 1,
       data,
       height: 265,
-      padding: { left: 56, right: 56, top: 5, bottom: 5 },
+      padding: 20,
+      paddingLeft: 56,
       domElement: chartRef.current,
-      viewElements: 13,
+      viewElements: 10,
       keyX: "date",
       keyY: "result",
       getDistance: (distance) => setDistance(distance),
     });
 
-    window.addEventListener("resize", () => {
-      instance.reInit();
-    });
+    instance.init()
   }, []);
 
   return (
